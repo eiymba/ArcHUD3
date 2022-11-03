@@ -18,8 +18,8 @@ module.defaults = {
 	}
 }
 module.options = {
-	{name = "Flash", text = "FLASH", tooltip = "FLASH"},
-	{name = "ShowTextHuge", text = "SHOWTEXTHUGE", tooltip = "SHOWTEXTHUGE"}, -- fka "combo points"
+	{ name = "Flash", text = "FLASH", tooltip = "FLASH" },
+	{ name = "ShowTextHuge", text = "SHOWTEXTHUGE", tooltip = "SHOWTEXTHUGE" }, -- fka "combo points"
 	attach = true,
 	hasseparators = true,
 }
@@ -41,7 +41,6 @@ function module:Initialize()
 
 	self:InitializePowerRing()
 end
-
 
 --[[
 
