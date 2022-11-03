@@ -120,7 +120,8 @@ ArcHUD.ClassColor = {
 	["HUNTER"] =	"ABD473",
 	["WARRIOR"] =	"C79C6E",
 	["DEATHKNIGHT"] = "C41F3B",
-	["MONK"] = 		"00FF96"
+	["MONK"] = 		"00FF96",
+	["EVOKER"] = "33937F"
 }
 
 -- Reputation colors
