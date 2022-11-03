@@ -15,11 +15,12 @@ ArcHUD.authors = "nyyr, Nenie"
 -- Classic specifics
 ArcHUD.isClassicWoW = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 ArcHUD.isClassicTbc = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
-ArcHUD.classic = ArcHUD.isClassic or ArcHUD.isClassicTbc
+ArcHUD.classic = ArcHUD.isClassicWoW or ArcHUD.isClassicTbc
 ArcHUD.UnitCastingInfo = UnitCastingInfo
 ArcHUD.UnitChannelInfo = UnitChannelInfo
 
-if ArcHUD.isClassicWoW then
+
+if ArcHUD.classic then
 	ArcHUD.LibClassicCasterino = LibStub("LibClassicCasterino", true)
 	ArcHUD.UnitCastingInfo = function(unit)
         return ArcHUD.LibClassicCasterino:UnitCastingInfo(unit)
@@ -29,15 +30,17 @@ if ArcHUD.isClassicWoW then
     end
 end
 
--- Locale object
-local L = LibStub("AceLocale-3.0"):GetLocale("ArcHUD_Core")
-
 -- Debugging levels
 --   1 Warning
 --   2 Info
 --   3 Notice
 --   4 Off
-local debugLevels = {"warn", "info", "notice", "off"}
+
+DebugLevels = {"off", "info", "notice", "warn"}
+
+-- Locale object
+local L = LibStub("AceLocale-3.0"):GetLocale("ArcHUD_Core")
+
 local d_warn = 1
 local d_info = 2
 local d_notice = 3
@@ -145,21 +148,23 @@ end
 function ArcHUD:GetDebugLevel()
 	return self.db.global.debugLevel
 end
-
 ----------------------------------------------
 -- Set debug level
 ----------------------------------------------
 function ArcHUD:SetDebugLevel(level)
-	if (level == nil) or (level >= 0 and level < 4) then
-		local levelName = "off"
-		if (level ~= nil) then
-			levelName = debugLevels[level]
-		end
-		self:Printf(L["CMD_OPTS_DEBUG_SET"], levelName)
-		self.db.global.debugLevel = level
-	else
-		self:Print("Invalid debug level: "..level)
+	if (level == nil) then
+		self.db.global.debugLevel = nil
+		self.db.profile.Debug = nil
+		return self:Print(L["Debug level set to: off"])
 	end
+	if (level >= 1 and level <= 4) then
+		self.db.global.debugLevel = level
+		self.db.profile.Debug = nil
+		return self:Print(L["Debug level set to: "]..DebugLevels[level])
+	end
+
+	self:Print(L["Debug level must be between 1 and 4"])
+		
 end
 
 ----------------------------------------------
@@ -170,7 +175,7 @@ function ArcHUD:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("ArcHUD3DB", ArcHUD.defaults, "profile")
 
 	-- Set debug level
-	--self:SetDebugging(true)
+	-- self:SetDebugging(true)
 	self:SetDebugLevel(self.db.profile.Debug)
 
 	self:LevelDebug(d_info, "Registering timers")

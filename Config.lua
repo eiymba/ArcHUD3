@@ -23,14 +23,14 @@ local function ArcHUD_updateProfilesTable()
 end
 
 -- Debugging levels
---   1 Warning
---   2 Info
---   3 Notice
---   4 Off
-local debugLevels = {"warn", "info", "notice", "off"}
-local d_warn = 1
+--   0 Off
+--   1 Info
+--   2 Notice
+--   3 Warning
+local d_warn = 3
 local d_info = 2
-local d_notice = 3
+local d_notice = 1
+local d_off = 0
 
 local testSwitch = false
 
@@ -102,18 +102,14 @@ ArcHUD.configOptionsTableCmd = {
 			name		= "debug",
 			desc		= L["CMD_OPTS_DEBUG"],
 			order		= 5,
-			values		= {"warn", "info", "notice", "off"},
+			values		= DebugLevels,
 			get			= function()
-				return debugLevels[ArcHUD:GetDebugLevel() or 4]
+				return ArcHUD:GetDebugLevel()
 			end,
 			set			= function(info, v)
-				if (v == 1) then 
-					ArcHUD:SetDebugLevel(nil)
-					ArcHUD.db.profile.Debug = nil
-				else 
-					ArcHUD:SetDebugLevel(v)
-					ArcHUD.db.profile.Debug = v
-				end
+		
+				return ArcHUD:SetDebugLevel(v)
+				
 			end,
 		},
 --[[		perf = {
