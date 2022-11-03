@@ -1,5 +1,5 @@
-## Interface: 90002
-## Title: ArcHUD3
+## Interface: 100000
+## Title: ArcHUD4
 ## Notes: Smooth combat HUD based on ArcHUD2
 ## Author: nyyr, Nenie
 ## SavedVariables: ArcHUD3DB
