@@ -24,10 +24,10 @@ module.defaults = {
 	}
 }
 module.options = {
-	{ name = "ShowText", text = "SHOWTEXT", tooltip = "SHOWTEXT" },
-	{ name = "ShowTextMax", text = "SHOWTEXTMAX", tooltip = "SHOWTEXTMAX" },
-	{ name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC" },
-	{ name = "SwapHealthPowerText", text = "SWAPHEALTHPOWERTEXT", tooltip = "SWAPHEALTHPOWERTEXT" },
+	{name = "ShowText", text = "SHOWTEXT", tooltip = "SHOWTEXT"},
+	{name = "ShowTextMax", text = "SHOWTEXTMAX", tooltip = "SHOWTEXTMAX"},
+	{name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC"},
+	{name = "SwapHealthPowerText", text = "SWAPHEALTHPOWERTEXT", tooltip = "SWAPHEALTHPOWERTEXT"},
 	hasmanabar = true,
 	attach = true,
 }
@@ -42,12 +42,10 @@ function module:Initialize()
 	self.f = self:CreateRing(true, ArcHUDFrame)
 	self.f:SetAlpha(0)
 
-	self.MPText = self:CreateFontString(self.f, "BACKGROUND", { 150, 15 }, 14, "LEFT", { 1.0, 1.0, 0.0 },
-		{ "TOPLEFT", ArcHUDFrameCombo, "TOPRIGHT", 0, 0 })
-	self.MPPerc = self:CreateFontString(self.f, "BACKGROUND", { 70, 14 }, 12, "LEFT", { 1.0, 1.0, 1.0 },
-		{ "TOPLEFT", self.MPText, "BOTTOMLEFT", 0, 0 })
+	self.MPText = self:CreateFontString(self.f, "BACKGROUND", {150, 15}, 14, "LEFT", {1.0, 1.0, 0.0}, {"TOPLEFT", ArcHUDFrameCombo, "TOPRIGHT", 0, 0})
+	self.MPPerc = self:CreateFontString(self.f, "BACKGROUND", {70, 14}, 12, "LEFT", {1.0, 1.0, 1.0}, {"TOPLEFT", self.MPText, "BOTTOMLEFT", 0, 0})
 	self:RegisterTimer("UpdatePowerBar", self.UpdatePowerBar, 0.1, self, true)
-
+	
 	self:CreateStandardModuleOptions(10)
 end
 
@@ -66,7 +64,7 @@ function module:OnModuleUpdate()
 	else
 		self.MPPerc:Hide()
 	end
-
+	
 	if self.db.profile.SwapHealthPowerText then
 		-- left
 		self.MPText:ClearAllPoints()
@@ -84,7 +82,7 @@ function module:OnModuleUpdate()
 		self.MPPerc:SetPoint("TOPLEFT", self.MPText, "BOTTOMLEFT", 0, 0)
 		self.MPPerc:SetJustifyH("LEFT")
 	end
-
+	
 	local HealthMod = ArcHUD:GetModule("Health")
 	if HealthMod.db.profile.SwapHealthPowerText ~= self.db.profile.SwapHealthPowerText then
 		HealthMod.db.profile.SwapHealthPowerText = self.db.profile.SwapHealthPowerText
@@ -101,7 +99,7 @@ end
 function module:OnModuleEnable()
 	self.f.pulse = false
 
-	if (UnitIsGhost(self.unit)) then
+	if(UnitIsGhost(self.unit)) then
 		self.f:GhostMode(true, self.unit)
 	else
 		self.f:GhostMode(false, self.unit)
@@ -111,8 +109,8 @@ function module:OnModuleEnable()
 
 		self.f:SetMax(UnitPowerMax(self.unit))
 		self.f:SetValue(UnitPower(self.unit))
-		self.MPText:SetText(self.parent:fint(UnitPower(self.unit)) .. "/" .. self.parent:fint(UnitPowerMax(self.unit)))
-		self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100) .. "%")
+		self.MPText:SetText(self.parent:fint(UnitPower(self.unit)).."/"..self.parent:fint(UnitPowerMax(self.unit)))
+		self.MPPerc:SetText(floor((UnitPower(self.unit)/UnitPowerMax(self.unit))*100).."%")
 	end
 
 	-- Register the events we will use
@@ -142,22 +140,22 @@ function module:UpdatePowerBar()
 	if (not UnitIsGhost(self.unit)) then
 		local power = UnitPower(self.unit)
 		local maxPower = UnitPowerMax(self.unit)
-
+		
 		if (maxPower > 0) then
 			if self.db.profile.ShowTextMax then
-				self.MPText:SetText(self.parent:fint(power) .. "/" .. self.parent:fint(maxPower))
+				self.MPText:SetText(self.parent:fint(power).."/"..self.parent:fint(maxPower))
 			else
 				self.MPText:SetText(self.parent:fint(power))
 			end
-			self.MPPerc:SetText(floor((power / maxPower) * 100) .. "%")
+			self.MPPerc:SetText(floor((power/maxPower)*100).."%")
 		else
 			self.MPText:SetText("")
 			self.MPPerc:SetText("")
 		end
-
+		
 		self.f:SetMax(maxPower)
 		self.f:SetValue(power)
-
+			
 		if (power == maxPower or power == 0) then
 			self:StopTimer("UpdatePowerBar")
 		end
@@ -171,19 +169,19 @@ function module:UpdatePowerEvent(event, arg1)
 	if (arg1 == self.unit) then
 		local power = UnitPower(self.unit)
 		local maxPower = UnitPowerMax(self.unit)
-
-		if (UnitIsGhost(self.unit) or (UnitIsDead(self.unit) and event == "PLAYER_ALIVE")) then
+		
+		if(UnitIsGhost(self.unit) or (UnitIsDead(self.unit) and event == "PLAYER_ALIVE")) then
 			self.f:GhostMode(true, self.unit)
 		else
 			self.f:GhostMode(false, self.unit)
-
+			
 			if (maxPower > 0) then
 				if self.db.profile.ShowTextMax then
-					self.MPText:SetText(self.parent:fint(power) .. "/" .. self.parent:fint(maxPower))
+					self.MPText:SetText(self.parent:fint(power).."/"..self.parent:fint(maxPower))
 				else
 					self.MPText:SetText(self.parent:fint(power))
 				end
-				self.MPPerc:SetText(floor((power / maxPower) * 100) .. "%")
+				self.MPPerc:SetText(floor((power/maxPower)*100).."%")
 			else
 				self.MPText:SetText("")
 				self.MPPerc:SetText("")
@@ -192,7 +190,7 @@ function module:UpdatePowerEvent(event, arg1)
 			self.f:SetMax(maxPower)
 			self.f:SetValue(power)
 		end
-
+		
 		if (power == maxPower or power == 0) then
 			self:StopTimer("UpdatePowerBar")
 		else
@@ -203,12 +201,13 @@ end
 
 function module:UpdatePowerType(event, arg1)
 	if (arg1 == self.unit) then
-		if (event == "UNIT_DISPLAYPOWER") then
+		if(event == "UNIT_DISPLAYPOWER") then
 			self:UpdateColor(UnitPowerType(self.unit))
-
+			
 			local info = self:GetPowerBarColorText(UnitPowerType(self.unit))
 			self.MPText:SetVertexColor(info.r, info.g, info.b)
 		end
 		self:UpdatePowerBar()
 	end
 end
+

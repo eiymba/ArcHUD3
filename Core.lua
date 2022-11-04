@@ -15,32 +15,30 @@ ArcHUD.authors = "nyyr, Nenie"
 -- Classic specifics
 ArcHUD.isClassicWoW = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 ArcHUD.isClassicTbc = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
-ArcHUD.classic = ArcHUD.isClassicWoW or ArcHUD.isClassicTbc
+ArcHUD.isClassicWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
+ArcHUD.classic = ArcHUD.isClassicWoW or ArcHUD.isClassicTbc or ArcHUD.isClassicWrath
 ArcHUD.UnitCastingInfo = UnitCastingInfo
 ArcHUD.UnitChannelInfo = UnitChannelInfo
 
-
-if ArcHUD.classic then
+if ArcHUD.isClassicWoW then
 	ArcHUD.LibClassicCasterino = LibStub("LibClassicCasterino", true)
 	ArcHUD.UnitCastingInfo = function(unit)
-		return ArcHUD.LibClassicCasterino:UnitCastingInfo(unit)
-	end
-	ArcHUD.UnitChannelInfo = function(unit)
-		return ArcHUD.LibClassicCasterino:UnitChannelInfo(unit)
-	end
+        return ArcHUD.LibClassicCasterino:UnitCastingInfo(unit)
+    end
+    ArcHUD.UnitChannelInfo = function(unit)
+        return ArcHUD.LibClassicCasterino:UnitChannelInfo(unit)
+    end
 end
+
+-- Locale object
+local L = LibStub("AceLocale-3.0"):GetLocale("ArcHUD_Core")
 
 -- Debugging levels
 --   1 Warning
 --   2 Info
 --   3 Notice
 --   4 Off
-
-DebugLevels = { "off", "info", "notice", "warn" }
-
--- Locale object
-local L = LibStub("AceLocale-3.0"):GetLocale("ArcHUD_Core")
-
+local debugLevels = {"warn", "info", "notice", "off"}
 local d_warn = 1
 local d_info = 2
 local d_notice = 3
@@ -110,22 +108,21 @@ ArcHUD.defaults = {
 
 -- Setup class colors
 ArcHUD.ClassColor = {
-	["MAGE"] = "69CCF0",
-	["WARLOCK"] = "9482C9",
-	["PRIEST"] = "FFFFFF",
-	["DRUID"] = "FF7D0A",
-	["SHAMAN"] = "0070DE",
-	["PALADIN"] = "F58CBA",
-	["ROGUE"] = "FFF569",
-	["HUNTER"] = "ABD473",
-	["WARRIOR"] = "C79C6E",
+	["MAGE"] =		"69CCF0",
+	["WARLOCK"] =	"9482C9",
+	["PRIEST"] =	"FFFFFF",
+	["DRUID"] =		"FF7D0A",
+	["SHAMAN"] =	"0070DE",
+	["PALADIN"] =	"F58CBA",
+	["ROGUE"] =		"FFF569",
+	["HUNTER"] =	"ABD473",
+	["WARRIOR"] =	"C79C6E",
 	["DEATHKNIGHT"] = "C41F3B",
-	["MONK"] = "00FF96",
-	["EVOKER"] = "33937F"
+	["MONK"] = 		"00FF96"
 }
 
 -- Reputation colors
-ArcHUD.RepColor = { "FF4444", "DD4444", "DD7744", "BB9944", "44DD44", "55EE44", "66FF44" }
+ArcHUD.RepColor = { "FF4444", "DD4444", "DD7744", "BB9944", "44DD44", "55EE44", "66FF44"}
 
 -- for backward compatibility (WoW 4.x-5.x)
 if not UnitIsGroupLeader then
@@ -154,19 +151,16 @@ end
 -- Set debug level
 ----------------------------------------------
 function ArcHUD:SetDebugLevel(level)
-	if (level == nil) then
-		self.db.global.debugLevel = nil
-		self.db.profile.Debug = nil
-		return self:Print(L["Debug level set to: off"])
-	end
-	if (level >= 1 and level <= 4) then
+	if (level == nil) or (level > 0 and level <= 4) then
+		local levelName = "off"
+		if (level ~= nil) then
+			levelName = debugLevels[level]
+			self:Printf(L["CMD_OPTS_DEBUG_SET"], levelName)
+		end
 		self.db.global.debugLevel = level
-		self.db.profile.Debug = nil
-		return self:Print(L["Debug level set to: "] .. DebugLevels[level])
+	else
+		self:Print("Invalid debug level: "..level)
 	end
-
-	self:Print(L["Debug level must be between 1 and 4"])
-
 end
 
 ----------------------------------------------
@@ -177,7 +171,7 @@ function ArcHUD:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("ArcHUD3DB", ArcHUD.defaults, "profile")
 
 	-- Set debug level
-	-- self:SetDebugging(true)
+	--self:SetDebugging(true)
 	self:SetDebugLevel(self.db.profile.Debug)
 
 	self:LevelDebug(d_info, "Registering timers")
@@ -190,11 +184,11 @@ function ArcHUD:OnInitialize()
 	self.TargetHUD = self:CreateHUDFrames()
 
 	self:InitConfig()
-
+	
 	self:SendMessage("ARCHUD_LOADED")
-
+	
 	self.db.RegisterCallback(self, "OnProfileChanged", "OnProfileChanged")
-
+	
 	self:LevelDebug(d_notice, "ArcHUD has been initialized.")
 end
 
@@ -203,21 +197,21 @@ end
 ----------------------------------------------
 function ArcHUD:OnEnable()
 	self:LevelDebug(d_notice, "Registering events")
-
+	
 	-- basic events
-	self:RegisterEvent("PLAYER_ENTERING_WORLD", "EventHandler")
+	self:RegisterEvent("PLAYER_ENTERING_WORLD",	"EventHandler")
 
-	self:RegisterEvent("PLAYER_ENTER_COMBAT", "CombatStatus")
-	self:RegisterEvent("PLAYER_LEAVE_COMBAT", "CombatStatus")
-	self:RegisterEvent("PLAYER_REGEN_ENABLED", "CombatStatus")
-	self:RegisterEvent("PLAYER_REGEN_DISABLED", "CombatStatus")
-	self:RegisterEvent("PET_ATTACK_START", "CombatStatus")
-	self:RegisterEvent("PET_ATTACK_STOP", "CombatStatus")
+	self:RegisterEvent("PLAYER_ENTER_COMBAT",	"CombatStatus")
+	self:RegisterEvent("PLAYER_LEAVE_COMBAT", 	"CombatStatus")
+	self:RegisterEvent("PLAYER_REGEN_ENABLED", 	"CombatStatus")
+	self:RegisterEvent("PLAYER_REGEN_DISABLED",	"CombatStatus")
+	self:RegisterEvent("PET_ATTACK_START",		"CombatStatus")
+	self:RegisterEvent("PET_ATTACK_STOP",		"CombatStatus")
 
-	self:RegisterEvent("UNIT_FACTION", "UpdateFaction")
-	self:RegisterEvent("GROUP_ROSTER_UPDATE", "UpdateFaction")
+	self:RegisterEvent("UNIT_FACTION",			"UpdateFaction")
+	self:RegisterEvent("GROUP_ROSTER_UPDATE",	"UpdateFaction")
 
-	self:RegisterEvent("RAID_TARGET_UPDATE", "UpdateRaidTargetIcon")
+	self:RegisterEvent("RAID_TARGET_UPDATE",	"UpdateRaidTargetIcon")
 
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
 	self:RegisterEvent("PLAYER_UPDATE_RESTING")
@@ -226,7 +220,7 @@ function ArcHUD:OnEnable()
 		self:RegisterEvent("UNIT_HAPPINESS", "UpdatePetNamePlate")
 	end
 
-	self:RegisterMessage("ARCHUD_FRAME_MOVED", "CheckFrames")
+	self:RegisterMessage("ARCHUD_FRAME_MOVED", 	"CheckFrames")
 
 	-- Set initial combat flags
 	self.PlayerIsInCombat = false
@@ -238,17 +232,17 @@ function ArcHUD:OnEnable()
 	self:LevelDebug(d_warn, "OnProfileChanged() B")
 
 	self.Enabled = true
-
+	
 	ArcHUDFrame:Show()
-
+	
 	self:LevelDebug(d_notice, "Triggering ring enable event")
 	self:SendMessage("ARCHUD_MODULE_ENABLE")
 	self:LevelDebug(d_info, L["TEXT_ENABLED"])
-
+	
 	if (AH_RuneFrame) then
 		AH_RuneFrame:Show()
 	end
-
+	
 	-- load custom buff modules (OnInitialize() is too early)
 	self:LoadCustomBuffModules()
 end
@@ -263,7 +257,7 @@ function ArcHUD:OnDisable()
 	self:HideBlizzardPlayer(true)
 	self:HideBlizzardTarget(true)
 	self:HideBlizzardFocus(true)
-
+	
 	-- basic events
 	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
@@ -287,7 +281,7 @@ function ArcHUD:OnDisable()
 	end
 
 	self:UnregisterMessage("ARCHUD_FRAME_MOVED")
-
+	
 	-- Hide frame
 	ArcHUDFrame:Hide()
 
@@ -303,22 +297,17 @@ function ArcHUD:OnProfileChanged(db, profile)
 
 	self:UnregisterAll()
 	self:LevelDebug(d_notice, "OnProfileChanged()")
-
-	if (
-		self.db.profile.BlizzPlayer and self.BlizzPlayerHidden or
-			not self.db.profile.BlizzPlayer and not self.BlizzPlayerHidden) then
+	
+	if(self.db.profile.BlizzPlayer and self.BlizzPlayerHidden or not self.db.profile.BlizzPlayer and not self.BlizzPlayerHidden) then
 		self:HideBlizzardPlayer(self.db.profile.BlizzPlayer)
 	end
-	if (
-		self.db.profile.BlizzTarget and self.BlizzTargetHidden or
-			not self.db.profile.BlizzTarget and not self.BlizzTargetHidden) then
+	if(self.db.profile.BlizzTarget and self.BlizzTargetHidden or not self.db.profile.BlizzTarget and not self.BlizzTargetHidden) then
 		self:HideBlizzardTarget(self.db.profile.BlizzTarget)
 	end
-	if (
-		self.db.profile.BlizzFocus and self.BlizzFocusHidden or not self.db.profile.BlizzFocus and not self.BlizzFocusHidden) then
+	if(self.db.profile.BlizzFocus and self.BlizzFocusHidden or not self.db.profile.BlizzFocus and not self.BlizzFocusHidden) then
 		self:HideBlizzardFocus(self.db.profile.BlizzFocus)
 	end
-
+	
 	if (SpellActivationOverlayFrame) then
 		SpellActivationOverlayFrame:SetScale(self.db.profile.BlizzSpellActScale)
 		if self.db.profile.BlizzSpellActCenter then
@@ -330,7 +319,7 @@ function ArcHUD:OnProfileChanged(db, profile)
 		end
 		self:HookBlizzardSpellActivation((self.db.profile.BlizzSpellActOpacity < 1.0))
 	end
-
+	
 	if (self.db.profile.PlayerFrame) then
 		self.Nameplates.player:Show()
 		self.Nameplates.pet:Show()
@@ -338,29 +327,29 @@ function ArcHUD:OnProfileChanged(db, profile)
 		self.Nameplates.player:Hide()
 		self.Nameplates.pet:Hide()
 	end
-
-	if (self.db.profile.TargetFrame) then
+	
+	if(self.db.profile.TargetFrame) then
 		self:LevelDebug(d_notice, "Targetframe enabled. Registering unit events")
-		self:RegisterEvent("UNIT_HEALTH", "EventHandler")
-		self:RegisterEvent("UNIT_MAXHEALTH", "EventHandler")
-		self:RegisterEvent("UNIT_POWER_UPDATE", "EventHandler")
-		self:RegisterEvent("UNIT_MAXPOWER", "EventHandler")
-		self:RegisterEvent("UNIT_DISPLAYPOWER", "EventHandler")
-		if (self.db.profile.ShowBuffs) then
-			self:RegisterEvent("UNIT_AURA", "TargetAuras")
+		self:RegisterEvent("UNIT_HEALTH", 			"EventHandler")
+		self:RegisterEvent("UNIT_MAXHEALTH", 		"EventHandler")
+		self:RegisterEvent("UNIT_POWER_UPDATE", 	"EventHandler")
+		self:RegisterEvent("UNIT_MAXPOWER",			"EventHandler")
+		self:RegisterEvent("UNIT_DISPLAYPOWER", 	"EventHandler")
+		if(self.db.profile.ShowBuffs) then
+			self:RegisterEvent("UNIT_AURA", 		"TargetAuras")
 		else
-			for i = 1, 40 do
-				self.TargetHUD["Buff" .. i]:Hide()
-				self.TargetHUD["Debuff" .. i]:Hide()
+			for i=1,40 do
+				self.TargetHUD["Buff"..i]:Hide()
+				self.TargetHUD["Debuff"..i]:Hide()
 			end
 		end
-		self:RegisterEvent("PLAYER_TARGET_CHANGED", "TargetUpdate")
+		self:RegisterEvent("PLAYER_TARGET_CHANGED",	  "TargetUpdate")
 		if (not ArcHUD.classic) then
-			self:RegisterEvent("PLAYER_FOCUS_CHANGED", "TargetUpdate")
+			self:RegisterEvent("PLAYER_FOCUS_CHANGED", 	  "TargetUpdate")
 		end
 
 		-- Show target frame if we have a target
-		if (UnitExists("target")) then
+		if(UnitExists("target")) then
 			self:TargetUpdate()
 		end
 
@@ -368,7 +357,7 @@ function ArcHUD:OnProfileChanged(db, profile)
 		-- Enable Target's Target('s Target) updates
 		self:StartTimer("UpdateTargetTarget")
 
-		if (self.db.profile.AttachTop) then
+		if(self.db.profile.AttachTop) then
 			self:LevelDebug(d_notice, "Attaching targetframe to top")
 			self.TargetHUD:ClearAllPoints()
 			self.TargetHUD:SetPoint("BOTTOM", self.TargetHUD:GetParent(), "TOP", 0, -100)
@@ -380,7 +369,7 @@ function ArcHUD:OnProfileChanged(db, profile)
 
 		-- Check for custom frame placements
 		for id, pos in pairs(self.db.profile.Positions) do
-			if (type(pos) == "table") then
+			if(type(pos) == "table") then
 				self.movableFrames[id]:ClearAllPoints()
 				self.movableFrames[id]:SetPoint("BOTTOMLEFT", WorldFrame, "BOTTOMLEFT", pos.x, pos.y)
 			end
@@ -390,25 +379,25 @@ function ArcHUD:OnProfileChanged(db, profile)
 		self:StopTimer("UpdateTargetPower")
 		self.TargetHUD:SetAlpha(0)
 		self.TargetHUD:Lock()
-
-		self:UnregisterEvent("UNIT_HEALTH", "EventHandler")
-		self:UnregisterEvent("UNIT_MAXHEALTH", "EventHandler")
-		self:UnregisterEvent("UNIT_POWER_UPDATE", "EventHandler")
-		self:UnregisterEvent("UNIT_MAXPOWER", "EventHandler")
-		self:UnregisterEvent("UNIT_DISPLAYPOWER", "EventHandler")
-		self:UnregisterEvent("UNIT_AURA", "TargetAuras")
-		self:UnregisterEvent("PLAYER_TARGET_CHANGED", "TargetUpdate")
+		
+		self:UnregisterEvent("UNIT_HEALTH", 			"EventHandler")
+		self:UnregisterEvent("UNIT_MAXHEALTH", 			"EventHandler")
+		self:UnregisterEvent("UNIT_POWER_UPDATE", 				"EventHandler")
+		self:UnregisterEvent("UNIT_MAXPOWER",			"EventHandler")
+		self:UnregisterEvent("UNIT_DISPLAYPOWER", 		"EventHandler")
+		self:UnregisterEvent("UNIT_AURA", 				"TargetAuras")
+		self:UnregisterEvent("PLAYER_TARGET_CHANGED",	"TargetUpdate")
 		if (not ArcHUD.classic) then
-			self:UnregisterEvent("PLAYER_FOCUS_CHANGED", "TargetUpdate")
+			self:UnregisterEvent("PLAYER_FOCUS_CHANGED", 	"TargetUpdate")
 		end
 	end
 
-	self:LevelDebug(d_notice, "Positioning ring anchors. Width: " .. self.db.profile.Width)
+	self:LevelDebug(d_notice, "Positioning ring anchors. Width: "..self.db.profile.Width)
 	-- Position the HUD according to user settings
 	anchorModule = self:GetModule("Anchors", true)
 	if not (anchorModule == nil) then
 		self:GetModule("Anchors").Left:ClearAllPoints()
-		self:GetModule("Anchors").Left:SetPoint("TOPLEFT", ArcHUDFrame, "TOPLEFT", 0 - self.db.profile.Width, 0)
+		self:GetModule("Anchors").Left:SetPoint("TOPLEFT", ArcHUDFrame, "TOPLEFT", 0-self.db.profile.Width, 0)
 		self:GetModule("Anchors").Right:ClearAllPoints()
 		self:GetModule("Anchors").Right:SetPoint("TOPLEFT", ArcHUDFrame, "TOPRIGHT", self.db.profile.Width, 0)
 	end
@@ -420,23 +409,23 @@ function ArcHUD:OnProfileChanged(db, profile)
 	--self:LevelDebug(d_notice, "Setting scale. Scale: "..self.db.profile.Scale)
 	-- Scale the HUD according to user settings.
 	ArcHUDFrame:SetScale(self.db.profile.Scale)
-
+	
 	-- Scale TargetHUD according to user settings (relative to ArcHUDFrame).
 	self.TargetHUD:SetScale(self.db.profile.ScaleTargetFrame)
-
+	
 	-- Set playername
 	self:UpdateFaction()
 	self:PLAYER_UPDATE_RESTING()
 
 	-- Enable nameplate updates
 	self:RestartNamePlateTimers()
-
+	
 	-- Update target HUD
 	self:UpdateTargetHUD()
-
+	
 	-- Modules
 	self:SendMessage("ARCHUD_MODULE_UPDATE")
-
+	
 	self.updating = false
 
 	self:LevelDebug(d_notice, "OnProfileChanged() done")
@@ -455,10 +444,10 @@ function ArcHUD:UnregisterAll()
 	self:UnregisterEvent("UNIT_DISPLAYPOWER")
 
 	self:UnregisterEvent("UNIT_AURA")
-	self:UnregisterEvent("UNIT_FACTION")
-	self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+	self:UnregisterEvent("UNIT_FACTION") 
+	self:UnregisterEvent("PLAYER_TARGET_CHANGED") 
 	if (not ArcHUD.classic) then
-		self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+		self:UnregisterEvent("PLAYER_FOCUS_CHANGED") 
 	end
 
 	self:LevelDebug(d_notice, "Disabling timers")
@@ -468,9 +457,9 @@ function ArcHUD:UnregisterAll()
 	self:StopTimer("UpdateTargetPower")
 
 	self:LevelDebug(d_notice, "Hiding frames")
-	for i = 1, 40 do
-		self.TargetHUD["Buff" .. i]:Hide()
-		self.TargetHUD["Debuff" .. i]:Hide()
+	for i=1,40 do
+		self.TargetHUD["Buff"..i]:Hide()
+		self.TargetHUD["Debuff"..i]:Hide()
 	end
 	self.TargetHUD:SetAlpha(0)
 end
@@ -495,15 +484,13 @@ end
 -- TargetUpdate()
 ----------------------------------------------
 function ArcHUD:TargetUpdate(event, arg1)
-
+	
 	-- Make sure we are targeting someone and that ArcHUD is enabled
 	if (UnitExists("target") and self.db.profile.TargetFrame) then
 		--self:LevelDebug(d_info, "TargetUpdate: Updating target frame...")
 
 		-- 3D target model
-		if (
-			(self.db.profile.PlayerModel and UnitIsPlayer("target")) or (self.db.profile.MobModel and not UnitIsPlayer("target"))
-			) then
+		if((self.db.profile.PlayerModel and UnitIsPlayer("target")) or (self.db.profile.MobModel and not UnitIsPlayer("target"))) then
 			self.TargetHUD.Model:Show()
 			self.TargetHUD.Model:SetUnit("target")
 			--self:LevelDebug(d_notice, "TargetUpdate: Enabling 3D model. Player - "..((self.db.profile.PlayerModel and UnitIsPlayer("target")) and "yes" or "no")..", Mob - "..((self.db.profile.MobModel and not UnitIsPlayer("target")) and "yes" or "no"))
@@ -514,11 +501,11 @@ function ArcHUD:TargetUpdate(event, arg1)
 
 		self.TargetHUD:SetAlpha(1)
 
-		if (UnitIsDead("target") or UnitIsGhost("target")) then
+		if(UnitIsDead("target") or UnitIsGhost("target")) then
 			self.TargetHUD.HPText:SetText("Dead")
 		else
 			if self.db.profile.ShowHealthPowerTextMax then
-				self.TargetHUD.HPText:SetText(self:fint(UnitHealth("target")) .. "/" .. self:fint(UnitHealthMax("target")))
+				self.TargetHUD.HPText:SetText(self:fint(UnitHealth("target")).."/"..self:fint(UnitHealthMax("target")))
 			else
 				self.TargetHUD.HPText:SetText(self:fint(UnitHealth("target")))
 			end
@@ -527,7 +514,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 		-- Does the unit have power? If so we want to show it
 		if (UnitPowerMax("target") > 0) then
 			if self.db.profile.ShowHealthPowerTextMax then
-				self.TargetHUD.MPText:SetText(self:fint(UnitPower("target")) .. "/" .. self:fint(UnitPowerMax("target")))
+				self.TargetHUD.MPText:SetText(self:fint(UnitPower("target")).."/"..self:fint(UnitPowerMax("target")))
 			else
 				self.TargetHUD.MPText:SetText(self:fint(UnitPower("target")))
 			end
@@ -538,11 +525,8 @@ function ArcHUD:TargetUpdate(event, arg1)
 		end
 
 		local addtolevel = ""
-		if (self.db.profile.ShowClass) then
-			addtolevel = " " ..
-				(
-				UnitIsPlayer("target") and UnitClass("target") or UnitCreatureFamily("target") or UnitCreatureType("target") or
-					"Unknown")
+		if(self.db.profile.ShowClass) then
+			addtolevel = " " .. (UnitIsPlayer("target") and UnitClass("target") or UnitCreatureFamily("target") or UnitCreatureType("target") or "Unknown")
 			self.TargetHUD.Level:SetJustifyH("CENTER")
 		else
 			self.TargetHUD.Level:SetJustifyH("CENTER")
@@ -550,7 +534,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 		-- What kind of target is it? If UnitLevel returns negative we have a target whose
 		--   level are too high to show or a boss
 		if (UnitLevel("target") < 0) then
-			if (UnitClassification("target") == "worldboss") then
+			if ( UnitClassification("target") == "worldboss" ) then
 				self.TargetHUD.Level:SetText("Boss" .. addtolevel)
 			else
 				self.TargetHUD.Level:SetText("L??" .. addtolevel)
@@ -558,20 +542,20 @@ function ArcHUD:TargetUpdate(event, arg1)
 		else
 			if (UnitClassification("target") == "normal") then
 				self.TargetHUD.Level:SetText("L" .. UnitLevel("target") .. addtolevel)
-				-- Make sure we mark elites with a + after the level
+			-- Make sure we mark elites with a + after the level
 			elseif (UnitClassification("target") == "elite") then
 				self.TargetHUD.Level:SetText("L" .. UnitLevel("target") .. "+" .. addtolevel)
-				-- Make sure we mark rares with Rare before level
+			-- Make sure we mark rares with Rare before level
 			elseif (UnitClassification("target") == "rare") then
 				self.TargetHUD.Level:SetText("Rare L" .. UnitLevel("target") .. addtolevel)
-				-- Make sure we mark rareelites with Rare before level and a + after level
+			-- Make sure we mark rareelites with Rare before level and a + after level
 			elseif (UnitClassification("target") == "rareelite") then
 				self.TargetHUD.Level:SetText("Rare L" .. UnitLevel("target") .. "+" .. addtolevel)
 			end
 		end
 
 		-- Check if the target is friendly to the player
-		targetfriend = UnitIsFriend("player", "target")
+		targetfriend = UnitIsFriend("player","target")
 
 		-- Color the level display based on the targets level in relation
 		--  to player level
@@ -581,11 +565,11 @@ function ArcHUD:TargetUpdate(event, arg1)
 			self.TargetHUD.Level:SetTextColor(0.7, 0.7, 0.7)
 		elseif (UnitLevel("target") == -1) then
 			self.TargetHUD.Level:SetTextColor(1, 0, 0)
-		elseif (UnitLevel("target") <= (UnitLevel("player") - 3)) then
+		elseif (UnitLevel("target") <= (UnitLevel("player")-3)) then
 			self.TargetHUD.Level:SetTextColor(0, 0.9, 0)
-		elseif (UnitLevel("target") >= (UnitLevel("player") + 5)) then
+		elseif (UnitLevel("target") >= (UnitLevel("player")+5)) then
 			self.TargetHUD.Level:SetTextColor(1, 0, 0)
-		elseif (UnitLevel("target") >= (UnitLevel("player") + 3)) then
+		elseif (UnitLevel("target") >= (UnitLevel("player")+3)) then
 			self.TargetHUD.Level:SetTextColor(1, 0.5, 0)
 		else
 			self.TargetHUD.Level:SetTextColor(1, 0.9, 0)
@@ -600,7 +584,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 		end
 		self.TargetHUD.MPText:SetTextColor(info.r, info.g, info.b)
 
-		if (targetfriend) then
+		if(targetfriend) then
 			self.TargetHUD.HPText:SetTextColor(0, 1, 0)
 		else
 			self.TargetHUD.HPText:SetTextColor(1, 0, 0)
@@ -611,7 +595,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 		local _, class = UnitClass("target")
 		local color = self.ClassColor[class]
 		local decoration_l, decoration_r = "", ""
-		if (UnitIsUnit("target", "focus")) then
+		if(UnitIsUnit("target", "focus")) then
 			decoration_l = "|cffffffff>>|r "
 			decoration_r = " |cffffffff<<|r"
 		end
@@ -620,20 +604,19 @@ function ArcHUD:TargetUpdate(event, arg1)
 			local guild, _, _ = GetGuildInfo("target")
 
 			-- Color the target name based on class since we have a player targeted
-			if (guild and ArcHUD.db.profile.ShowGuild) then
-				self.TargetHUD.Name:SetText(decoration_l .. "|cff" .. color ..
-					UnitName("target") .. " <" .. guild .. ">" .. "|r" .. decoration_r)
+			if(guild and ArcHUD.db.profile.ShowGuild) then
+				self.TargetHUD.Name:SetText(decoration_l.."|cff"..color..UnitName("target").." <"..guild..">".."|r"..decoration_r)
 			else
-				self.TargetHUD.Name:SetText(decoration_l .. "|cff" .. color .. UnitName("target") .. "|r" .. decoration_r)
+				self.TargetHUD.Name:SetText(decoration_l.."|cff"..color..UnitName("target").."|r"..decoration_r)
 			end
 		else
 			-- Color the target name based on reaction (red to green) since we have a
 			--   mob targeted
-			local reaction = self.RepColor[UnitReaction("target", "player")]
-			if (reaction) then
-				self.TargetHUD.Name:SetText(decoration_l .. "|cff" .. reaction .. UnitName("target") .. "|r" .. decoration_r)
+			local reaction = self.RepColor[UnitReaction("target","player")]
+			if(reaction) then
+				self.TargetHUD.Name:SetText(decoration_l.."|cff"..reaction..UnitName("target").."|r"..decoration_r)
 			else
-				self.TargetHUD.Name:SetText(decoration_l .. UnitName("target") .. decoration_r)
+				self.TargetHUD.Name:SetText(decoration_l..UnitName("target")..decoration_r)
 			end
 		end
 
@@ -644,7 +627,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 			self.NamePlates.Target:Hide()
 		end]]
 
-		if (self.db.profile.ShowBuffs) then
+		if(self.db.profile.ShowBuffs) then
 			-- Update buffs and debuffs for the target
 			self:TargetAuras(nil, "target")
 		end
@@ -653,10 +636,10 @@ function ArcHUD:TargetUpdate(event, arg1)
 		self:UpdateRaidTargetIcon()
 		self:PLAYER_FLAGS_CHANGED("target")
 
-		if (self.BlizzTargetHidden and not self.updating) then
-			if (UnitIsEnemy("target", "player")) then
+		if(self.BlizzTargetHidden and not self.updating) then
+			if(UnitIsEnemy("target", "player")) then
 				PlaySound(SOUNDKIT.IG_CREATURE_AGGRO_SELECT) -- igCreatureAggroSelect
-			elseif (UnitIsFriend("player", "target")) then
+			elseif(UnitIsFriend("player", "target")) then
 				PlaySound(SOUNDKIT.IG_CHARACTER_NPC_SELECT) -- igCharacterNPCSelect
 			else
 				PlaySound(SOUNDKIT.IG_CREATURE_NEUTRAL_SELECT) -- igCreatureNeutralSelect
@@ -667,7 +650,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 	else
 		-- We didn't have anything targeted or ArcHUD is disabled so lets hide the
 		--   target frame again
-		if (self.BlizzTargetHidden and not self.updating) then
+		if(self.BlizzTargetHidden and not self.updating) then
 			PlaySound(SOUNDKIT.INTERFACE_SOUND_LOST_TARGET_UNIT) -- INTERFACESOUND_LOSTTARGETUNIT
 		end
 		if (self.TargetHUD.locked) then
@@ -675,7 +658,7 @@ function ArcHUD:TargetUpdate(event, arg1)
 		else
 			self.TargetHUD:SetAlpha(1)
 		end
-
+		
 		self.TargetHUD.Model:Hide()
 
 		self:StopTimer("UpdateTargetPower")
@@ -687,19 +670,19 @@ end
 -- TargetAuras()
 ----------------------------------------------
 function ArcHUD:TargetAuras(event, arg1)
-	if (not arg1 == "target") then return end
+	if(not arg1 == "target") then return end
 	local unit = "target"
 	local i, icon, buff, count, buffType, color, duration, expirationTime
 	local filter = ""
-
+	
 	if (self.db.profile.ShowOnlyBuffsCastByPlayer) then
 		filter = "PLAYER"
 	end
-
+	
 	-- buffs
 	for i = 1, 40 do
 		local _, buff, count, buffType, duration, expirationTime = UnitBuff(unit, i, filter)
-		button = self.TargetHUD["Buff" .. i]
+		button = self.TargetHUD["Buff"..i]
 		if (buff) then
 			button.Icon:SetTexture(buff)
 			button:Show()
@@ -712,9 +695,9 @@ function ArcHUD:TargetAuras(event, arg1)
 			else
 				button.Count:Hide()
 			end
-
-			if (duration) then
-				if (duration > 0) then
+			
+			if(duration) then
+				if(duration > 0) then
 					button.Cooldown:Show()
 					startCooldownTime = expirationTime - duration
 					button.Cooldown:SetCooldown(startCooldownTime, duration)
@@ -732,21 +715,21 @@ function ArcHUD:TargetAuras(event, arg1)
 	-- debuffs
 	for i = 1, 40 do
 		local _, buff, count, buffType, duration, expirationTime = UnitDebuff(unit, i, filter)
-		button = self.TargetHUD["Debuff" .. i]
+		button = self.TargetHUD["Debuff"..i]
 		if (buff) then
 			button.Icon:SetTexture(buff)
 			button:Show()
 			button.Border:Show()
 			button.isdebuff = 1
 			button.unit = unit
-
-			if (buffType) then
+			
+			if ( buffType ) then
 				color = DebuffTypeColor[buffType]
 			else
 				color = DebuffTypeColor["none"]
 			end
 			button.Border:SetVertexColor(color.r, color.g, color.b)
-
+			
 			if (count > 1) then
 				button.Count:SetText(count)
 				button.Count:Show()
@@ -755,8 +738,8 @@ function ArcHUD:TargetAuras(event, arg1)
 				button.Count:Hide()
 			end
 
-			if (duration) then
-				if (duration > 0) then
+			if(duration) then
+				if(duration > 0) then
 					button.Cooldown:Show()
 					startCooldownTime = expirationTime - duration
 					button.Cooldown:SetCooldown(startCooldownTime, duration)
@@ -794,7 +777,7 @@ end
 ----------------------------------------------
 function ArcHUD:UpdateTargetPower()
 	if self.db.profile.ShowHealthPowerTextMax then
-		self.TargetHUD.MPText:SetText(self:fint(UnitPower("target")) .. "/" .. self:fint(UnitPowerMax("target")))
+		self.TargetHUD.MPText:SetText(self:fint(UnitPower("target")).."/"..self:fint(UnitPowerMax("target")))
 	else
 		self.TargetHUD.MPText:SetText(self:fint(UnitPower("target")))
 	end
@@ -806,16 +789,16 @@ end
 function ArcHUD:UpdateFaction(unit)
 	--self:LevelDebug(d_info, "UpdateFaction: arg1 = %s, unit = %s", arg1 or "nil", unit or "nil")
 
-	if (not unit and arg1 and arg1 ~= "player") then return end
-	if (arg1 and not unit) then unit = arg1 end
+	if(not unit and arg1 and arg1 ~= "player") then return end
+	if(arg1 and not unit) then unit = arg1 end
 
-	if (unit and unit == "target") then
+	if(unit and unit == "target") then
 		local factionGroup = UnitFactionGroup("target")
-		if (UnitIsPVPFreeForAll("target")) then
+		if(UnitIsPVPFreeForAll("target")) then
 			self.TargetHUD.PVPIcon:SetTexture("Interface\\TargetingFrame\\UI-PVP-FFA")
 			self.TargetHUD.PVPIcon:Show()
-		elseif (factionGroup and UnitIsPVP("target") and factionGroup ~= "Neutral") then
-			self.TargetHUD.PVPIcon:SetTexture("Interface\\TargetingFrame\\UI-PVP-" .. factionGroup)
+		elseif(factionGroup and UnitIsPVP("target") and factionGroup ~= "Neutral") then
+			self.TargetHUD.PVPIcon:SetTexture("Interface\\TargetingFrame\\UI-PVP-"..factionGroup)
 			self.TargetHUD.PVPIcon:Show()
 		else
 			self.TargetHUD.PVPIcon:Hide()
@@ -824,22 +807,20 @@ function ArcHUD:UpdateFaction(unit)
 		local factionGroup, factionName = UnitFactionGroup("player");
 		local _, class = UnitClass("player")
 		local color = self.ClassColor[class]
-		if (self.db.profile.ShowPVP and UnitIsPVPFreeForAll("player")) then
-			if (not self.PVPEnabled) then
+		if(self.db.profile.ShowPVP and UnitIsPVPFreeForAll("player")) then
+			if(not self.PVPEnabled) then
 				PlaySound(SOUNDKIT.IG_PVP_UPDATE)
 			end
-			self.Nameplates.player.Text:SetText("|cffffff00[FFA] |cff" ..
-				(color or "ffffff") .. (UnitName("player") or "Unknown Entity") .. "|r")
+			self.Nameplates.player.Text:SetText("|cffffff00[FFA] |cff"..(color or "ffffff")..(UnitName("player") or "Unknown Entity").."|r")
 			self.PVPEnabled = true
-		elseif (self.db.profile.ShowPVP and factionGroup and UnitIsPVP("player")) then
-			if (not self.PVPEnabled) then
+		elseif(self.db.profile.ShowPVP and factionGroup and UnitIsPVP("player")) then
+			if(not self.PVPEnabled) then
 				PlaySound(SOUNDKIT.IG_PVP_UPDATE)
 			end
-			self.Nameplates.player.Text:SetText("|cffff0000[PVP] |cff" ..
-				(color or "ffffff") .. (UnitName("player") or "Unknown Entity") .. "|r")
+			self.Nameplates.player.Text:SetText("|cffff0000[PVP] |cff"..(color or "ffffff")..(UnitName("player") or "Unknown Entity").."|r")
 			self.PVPEnabled = true
 		else
-			self.Nameplates.player.Text:SetText("|cff" .. (color or "ffffff") .. (UnitName("player") or "Unknown Entity") .. "|r")
+			self.Nameplates.player.Text:SetText("|cff"..(color or "ffffff")..(UnitName("player") or "Unknown Entity").."|r")
 			self.PVPEnabled = nil
 		end
 	end
@@ -849,10 +830,10 @@ end
 -- UpdateRaidTargetIcon()
 ----------------------------------------------
 function ArcHUD:UpdateRaidTargetIcon()
-	if (not UnitExists("target")) then self.TargetHUD.RaidTargetIcon:Hide() return end
+	if(not UnitExists("target")) then self.TargetHUD.RaidTargetIcon:Hide() return end
 
 	local index = GetRaidTargetIndex("target")
-	if (index) then
+	if(index) then
 		SetRaidTargetIconTexture(self.TargetHUD.RaidTargetIcon, index)
 		self.TargetHUD.RaidTargetIcon:Show()
 	else
@@ -864,11 +845,11 @@ end
 -- PLAYER_FLAGS_CHANGED()
 ----------------------------------------------
 function ArcHUD:PLAYER_FLAGS_CHANGED(unit)
-	if (arg1 and not unit) then unit = arg1 end
-	if (not UnitExists("target")) then self.TargetHUD.LeaderIcon:Hide() return end
+	if(arg1 and not unit) then unit = arg1 end
+	if(not UnitExists("target")) then self.TargetHUD.LeaderIcon:Hide() return end
 
-	if (unit == "target") then
-		if (UnitIsGroupLeader("target")) then
+	if(unit == "target") then
+		if(UnitIsGroupLeader("target")) then
 			self.TargetHUD.LeaderIcon:Show()
 		else
 			self.TargetHUD.LeaderIcon:Hide()
@@ -880,22 +861,22 @@ end
 -- UpdatePetNamePlate()
 ----------------------------------------------
 function ArcHUD:UpdatePetNamePlate()
-	if (UnitExists("pet")) then
+	if(UnitExists("pet")) then
 		local color = "00ff00"
 		local alpha = self.db.profile.FadeFull
 		local happiness = ""
 		if ArcHUD.classic then
 			happiness, _, _ = GetPetHappiness()
-			if (happiness) then
-				if (happiness == 1) then
+			if(happiness) then
+				if(happiness == 1) then
 					color = "ff0000"
 					happiness = "  :("
 					alpha = self.db.profile.FadeIC
-				elseif (happiness == 2) then
+				elseif(happiness == 2) then
 					color = "ffff00"
 					happiness = "  :||"
 					alpha = self.db.profile.FadeOOC
-				elseif (happiness == 3) then
+				elseif(happiness == 3) then
 					color = "00ff00"
 					happiness = "  :)"
 					alpha = self.db.profile.FadeFull
@@ -908,7 +889,7 @@ function ArcHUD:UpdatePetNamePlate()
 		if ((not self.Nameplates.pet.state)) then
 			ArcHUDRingTemplate.SetRingAlpha(self.Nameplates.pet, alpha)
 		end
-		self.Nameplates.pet.Text:SetText("|cff" .. color .. UnitName("pet") .. happiness .. "|r")
+		self.Nameplates.pet.Text:SetText("|cff"..color..UnitName("pet")..happiness.."|r")
 		self.Nameplates.pet.disabled = false
 	else
 		self.Nameplates.pet:Disable()
@@ -922,21 +903,21 @@ end
 ----------------------------------------------
 function ArcHUD:UpdateTargetTarget()
 	-- Handle Target's Target
-	if (UnitExists("targettarget") and self.db.profile.TargetTarget) then
+	if(UnitExists("targettarget") and self.db.profile.TargetTarget) then
 		local _, class = UnitClass("targettarget")
 		local color = self.ClassColor[class]
 		local decoration = ""
-		if (UnitIsUnit("targettarget", "focus")) then
+		if(UnitIsUnit("targettarget", "focus")) then
 			decoration = "|cffffffff>|r "
 		end
 		if (color and UnitIsPlayer("targettarget")) then
-			self.TargetHUD.Target.Name:SetText(decoration .. "|cff" .. color .. UnitName("targettarget") .. "|r")
+				self.TargetHUD.Target.Name:SetText(decoration.."|cff"..color..UnitName("targettarget").."|r")
 		else
-			local reaction = self.RepColor[UnitReaction("targettarget", "player")]
-			if (reaction) then
-				self.TargetHUD.Target.Name:SetText(decoration .. "|cff" .. reaction .. UnitName("targettarget") .. "|r")
+			local reaction = self.RepColor[UnitReaction("targettarget","player")]
+			if(reaction) then
+				self.TargetHUD.Target.Name:SetText(decoration.."|cff"..reaction..UnitName("targettarget").."|r")
 			else
-				self.TargetHUD.Target.Name:SetText(decoration .. UnitName("targettarget"))
+				self.TargetHUD.Target.Name:SetText(decoration..UnitName("targettarget"))
 			end
 		end
 
@@ -948,48 +929,47 @@ function ArcHUD:UpdateTargetTarget()
 		end
 		self.TargetHUD.Target.MPText:SetTextColor(info.r, info.g, info.b)
 
-		if (UnitIsFriend("player", "targettarget")) then
+		if(UnitIsFriend("player","targettarget")) then
 			self.TargetHUD.Target.HPText:SetTextColor(0, 1, 0)
 		else
 			self.TargetHUD.Target.HPText:SetTextColor(1, 0, 0)
 		end
-		if (UnitIsDead("targettarget") or UnitIsGhost("targettarget")) then
+		if(UnitIsDead("targettarget") or UnitIsGhost("targettarget")) then
 			self.TargetHUD.Target.HPText:SetText("Dead")
 		else
-			self.TargetHUD.Target.HPText:SetText(math.floor(UnitHealth("targettarget") / UnitHealthMax("targettarget") * 100) ..
-				"%")
+			self.TargetHUD.Target.HPText:SetText(math.floor(UnitHealth("targettarget")/UnitHealthMax("targettarget")*100).."%")
 		end
 
 		if (UnitPowerMax("targettarget") > 0) then
-			self.TargetHUD.Target.MPText:SetText(math.floor(UnitPower("targettarget") / UnitPowerMax("targettarget") * 100) .. "%")
+			self.TargetHUD.Target.MPText:SetText(math.floor(UnitPower("targettarget")/UnitPowerMax("targettarget")*100).."%")
 		else
 			self.TargetHUD.Target.MPText:SetText(" ")
 		end
 		self.TargetHUD.Target:SetAlpha(1)
 		self.Nameplates.targettarget:Enable()
 	else
-		if (self.TargetHUD.Target.locked) then
+		if(self.TargetHUD.Target.locked) then
 			self.TargetHUD.Target:SetAlpha(0)
 		end
 		self.Nameplates.targettarget:Disable()
 	end
 
 	-- Handle Target's Target's Target
-	if (UnitExists("targettargettarget") and self.db.profile.TargetTargetTarget) then
+	if(UnitExists("targettargettarget") and self.db.profile.TargetTargetTarget) then
 		local _, class = UnitClass("targettargettarget")
 		local color = self.ClassColor[class]
 		local decoration = ""
-		if (UnitIsUnit("targettargettarget", "focus")) then
+		if(UnitIsUnit("targettargettarget", "focus")) then
 			decoration = "|cffffffff>|r "
 		end
 		if (color and UnitIsPlayer("targettargettarget")) then
-			self.TargetHUD.TargetTarget.Name:SetText(decoration .. "|cff" .. color .. UnitName("targettargettarget") .. "|r")
+				self.TargetHUD.TargetTarget.Name:SetText(decoration.."|cff"..color..UnitName("targettargettarget").."|r")
 		else
-			local reaction = self.RepColor[UnitReaction("targettargettarget", "player")]
-			if (reaction) then
-				self.TargetHUD.TargetTarget.Name:SetText(decoration .. "|cff" .. reaction .. UnitName("targettargettarget") .. "|r")
+			local reaction = self.RepColor[UnitReaction("targettargettarget","player")]
+			if(reaction) then
+				self.TargetHUD.TargetTarget.Name:SetText(decoration.."|cff"..reaction..UnitName("targettargettarget").."|r")
 			else
-				self.TargetHUD.TargetTarget.Name:SetText(decoration .. UnitName("targettargettarget"))
+				self.TargetHUD.TargetTarget.Name:SetText(decoration..UnitName("targettargettarget"))
 			end
 		end
 
@@ -1001,28 +981,26 @@ function ArcHUD:UpdateTargetTarget()
 		end
 		self.TargetHUD.TargetTarget.MPText:SetTextColor(info.r, info.g, info.b)
 
-		if (UnitIsFriend("player", "targettargettarget")) then
+		if(UnitIsFriend("player","targettargettarget")) then
 			self.TargetHUD.TargetTarget.HPText:SetTextColor(0, 1, 0)
 		else
 			self.TargetHUD.TargetTarget.HPText:SetTextColor(1, 0, 0)
 		end
-		if (UnitIsDead("targettargettarget") or UnitIsGhost("targettargettarget")) then
+		if(UnitIsDead("targettargettarget") or UnitIsGhost("targettargettarget")) then
 			self.TargetHUD.TargetTarget.HPText:SetText("Dead")
 		else
-			self.TargetHUD.TargetTarget.HPText:SetText(math.floor(UnitHealth("targettargettarget") /
-				UnitHealthMax("targettargettarget") * 100) .. "%")
+			self.TargetHUD.TargetTarget.HPText:SetText(math.floor(UnitHealth("targettargettarget")/UnitHealthMax("targettargettarget")*100).."%")
 		end
 
 		if (UnitPowerMax("targettargettarget") > 0) then
-			self.TargetHUD.TargetTarget.MPText:SetText(math.floor(UnitPower("targettargettarget") /
-				UnitPowerMax("targettargettarget") * 100) .. "%")
+			self.TargetHUD.TargetTarget.MPText:SetText(math.floor(UnitPower("targettargettarget")/UnitPowerMax("targettargettarget")*100).."%")
 		else
 			self.TargetHUD.TargetTarget.MPText:SetText(" ")
 		end
 		self.TargetHUD.TargetTarget:SetAlpha(1)
 		self.Nameplates.targettargettarget:Enable()
 	else
-		if (self.TargetHUD.TargetTarget.locked) then
+		if(self.TargetHUD.TargetTarget.locked) then
 			self.TargetHUD.TargetTarget:SetAlpha(0)
 		end
 		self.Nameplates.targettargettarget:Disable()
@@ -1034,22 +1012,22 @@ end
 ----------------------------------------------
 function ArcHUD:UpdateFonts(tbl)
 	local update = false
-	for k, v in pairs(tbl) do
-		if (type(v) == "table") then
-			if (v.GetFont) then
+    for k,v in pairs(tbl) do
+        if(type(v) == "table") then
+			if(v.GetFont) then
 				local fontName, fontSize, fontFlags = v:GetFont()
-				if (fontName) then
+				if(fontName) then
 					self:LevelDebug(d_notice, "UpdateFonts: fontName = %s, localeFont = %s", fontName, L["FONT"])
 				end
-				if (fontName and not string.find(fontName, L["FONT"])) then
-					v:SetFont("Fonts\\" .. L["FONT"], fontSize, fontFlags)
+				if(fontName and not string.find(fontName, L["FONT"])) then
+					v:SetFont("Fonts\\"..L["FONT"], fontSize, fontFlags)
 					update = true
 				end
 			end
-			self:UpdateFonts(v)
-		end
-	end
-	if (update) then
+            self:UpdateFonts(v)
+        end
+    end
+	if(update) then
 		self:LevelDebug(d_notice, "Fonts updated")
 	end
 end
@@ -1077,19 +1055,19 @@ function ArcHUD:EventHandler(event, arg1)
 	elseif (event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH") then
 		if (arg1 == "target") then
 			if self.db.profile.ShowHealthPowerTextMax then
-				self.TargetHUD.HPText:SetText(self:fint(UnitHealth(arg1)) .. "/" .. self:fint(UnitHealthMax(arg1)))
+				self.TargetHUD.HPText:SetText(self:fint(UnitHealth(arg1)).."/"..self:fint(UnitHealthMax(arg1)))
 			else
 				self.TargetHUD.HPText:SetText(self:fint(UnitHealth(arg1)))
 			end
 		end
 
-	elseif (event == "PLAYER_ENTERING_WORLD") then
+	elseif(event == "PLAYER_ENTERING_WORLD") then
 		self.PlayerIsInCombat = false
 		self.PlayerIsRegenOn = true
 
 	else
 		if (arg1 == "target") then
-			self.TargetHUD.MPText:SetText(self:fint(UnitPower(arg1)) .. "/" .. self:fint(UnitPowerMax(arg1)))
+			self.TargetHUD.MPText:SetText(self:fint(UnitPower(arg1)).."/"..self:fint(UnitPowerMax(arg1)))
 		end
 	end
 end
@@ -1098,7 +1076,7 @@ end
 -- PLAYER_UPDATE_RESTING()
 ----------------------------------------------
 function ArcHUD:PLAYER_UPDATE_RESTING()
-	if (self.db.profile.ShowResting) then
+	if(self.db.profile.ShowResting) then
 		self.Nameplates.player.Resting:SetText(IsResting() and "Resting" or "")
 	else
 		self.Nameplates.player.Resting:SetText("")
@@ -1111,21 +1089,21 @@ end
 function ArcHUD:CombatStatus(event, arg1, arg2)
 	self:LevelDebug(d_info, "CombatStatus: event = " .. event)
 
-	if (event == "PLAYER_ENTER_COMBAT" or event == "PLAYER_REGEN_DISABLED") then
+	if(event == "PLAYER_ENTER_COMBAT" or event == "PLAYER_REGEN_DISABLED") then
 		self.PlayerIsInCombat = true
-		if (event == "PLAYER_REGEN_DISABLED") then
+		if(event == "PLAYER_REGEN_DISABLED") then
 			self.PlayerIsRegenOn = false
 		end
-	elseif (event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED") then
-		if (event == "PLAYER_LEAVE_COMBAT" and self.PlayerIsRegenOn) then
+	elseif(event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED") then
+		if(event == "PLAYER_LEAVE_COMBAT" and self.PlayerIsRegenOn) then
 			self.PlayerIsInCombat = false
-		elseif (event == "PLAYER_REGEN_ENABLED") then
+		elseif(event == "PLAYER_REGEN_ENABLED") then
 			self.PlayerIsInCombat = false
 			self.PlayerIsRegenOn = true
 		end
-	elseif (event == "PET_ATTACK_START") then
+	elseif(event == "PET_ATTACK_START") then
 		self.PetIsInCombat = true
-	elseif (event == "PET_ATTACK_STOP") then
+	elseif(event == "PET_ATTACK_STOP") then
 		self.PetIsInCombat = false
 	end
 end
@@ -1134,7 +1112,7 @@ end
 -- Register a timer
 ----------------------------------------------
 function ArcHUD:RegisterTimer(name, callback, delay, arg, repeating)
-	self.timers[name] = { func = callback, delay = delay, arg = arg, repeating = repeating }
+	self.timers[name] = {func = callback, delay = delay, arg = arg, repeating = repeating}
 end
 
 ----------------------------------------------
@@ -1143,7 +1121,7 @@ end
 function ArcHUD:StartTimer(name)
 	local t = self.timers[name]
 	if (t) then
-		if not (t.active and (t.repeating or GetTime() - t.startTime < t.delay)) then
+		if not (t.active and (t.repeating or GetTime()-t.startTime < t.delay)) then
 			if (t.repeating) then
 				self.timers[name].handle = self:ScheduleRepeatingTimer(t.func, t.delay, t.arg)
 				self.timers[name].active = true
@@ -1156,7 +1134,7 @@ function ArcHUD:StartTimer(name)
 			end
 		end
 	else
-		self:LevelDebug(d_warn, "WARN: Tried to start unregistered timer (name " .. name .. ")")
+		self:LevelDebug(d_warn, "WARN: Tried to start unregistered timer (name "..name..")")
 	end
 end
 
@@ -1168,15 +1146,15 @@ function ArcHUD:StopTimer(name)
 	if (t) then
 		if (t.active) then
 			if (not self:CancelTimer(t.handle, true)) then
-				self:LevelDebug(d_warn, "WARN: Tried to cancel invalid timer handle (name " .. name .. ")")
-				--else
+				self:LevelDebug(d_warn, "WARN: Tried to cancel invalid timer handle (name "..name..")")
+			--else
 				--self:LevelDebug(d_warn, "Stopped "..name..", handle "..tostring(t.handle))
 			end
 			self.timers[name].handle = nil
 			self.timers[name].active = nil
 		end
 	else
-		self:LevelDebug(d_warn, "WARN: Tried to cancel unregistered timer (name " .. name .. ")")
+		self:LevelDebug(d_warn, "WARN: Tried to cancel unregistered timer (name "..name..")")
 	end
 end
 
@@ -1184,9 +1162,9 @@ end
 -- List timers
 ----------------------------------------------
 function ArcHUD:TimersPrintPerf()
-	for n, t in pairs(self.timers) do
-		self:LevelDebug(d_warn, n .. ": delay " .. t.delay ..
-			", repeat " .. tostring(t.repeating) ..
-			", active " .. tostring((t.repeating and t.active) or (t.active and GetTime() - t.startTime <= t.delay)))
+	for n,t in pairs(self.timers) do
+		self:LevelDebug(d_warn, n..": delay "..t.delay..
+			", repeat "..tostring(t.repeating)..
+			", active "..tostring((t.repeating and t.active) or (t.active and GetTime()-t.startTime <= t.delay)))
 	end
 end

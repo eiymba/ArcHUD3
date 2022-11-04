@@ -11,8 +11,8 @@ module.defaults = {
 		Enabled = true,
 		Outline = true,
 		ShowPerc = true,
-		ColorFriend = { r = 0, g = 0.5, b = 1 },
-		ColorFoe = { r = 1, g = 0, b = 0 },
+		ColorFriend = {r = 0, g = 0.5, b = 1},
+		ColorFoe = {r = 1, g = 0, b = 0},
 		Side = 1,
 		Level = 1,
 		Attach = true, -- if false, do not attach to default anchors, attach to UF instead
@@ -20,15 +20,15 @@ module.defaults = {
 }
 if (ArcHUD.classic) then
 	module.options = {
-		{ name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC" },
+		{name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC"},
 		--{name = "Attach", text = "ATTACHRING", tooltip = "ATTACHRING"},
 		hasfriendfoe = true,
 		attach = true,
 	}
 else
 	module.options = {
-		{ name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC" },
-		{ name = "ShowIncoming", text = "INCOMINGHEALS", tooltip = "INCOMINGHEALS" },
+		{name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC"},
+		{name = "ShowIncoming", text = "INCOMINGHEALS", tooltip = "INCOMINGHEALS"},
 		--{name = "Attach", text = "ATTACHRING", tooltip = "ATTACHRING"},
 		hasfriendfoe = true,
 		attach = true,
@@ -41,20 +41,19 @@ function module:Initialize()
 	self.f = self:CreateRing(true, ArcHUDFrame)
 	self.f:SetAlpha(0)
 
-	self.HPPerc = self:CreateFontString(self.f, "BACKGROUND", { 40, 12 }, 10, "CENTER", { 1.0, 1.0, 1.0 },
-		{ "TOP", self.f, "BOTTOMLEFT", 20, -130 })
+	self.HPPerc = self:CreateFontString(self.f, "BACKGROUND", {40, 12}, 10, "CENTER", {1.0, 1.0, 1.0}, {"TOP", self.f, "BOTTOMLEFT", 20, -130})
 	--{"TOPLEFT", self.f, "BOTTOMLEFT", -100, -115})
-
+	
 	self:CreateStandardModuleOptions(20)
 end
 
 function module:OnModuleUpdate()
-	if (self.db.profile.ShowPerc) then
+	if(self.db.profile.ShowPerc) then
 		self.HPPerc:Show()
 	else
 		self.HPPerc:Hide()
 	end
-	--[[
+--[[
 	if (self.db.profile.Attach) then
 		self.f:SetScale(1)
 		--fontName, _, fontFlags = self.HPPerc:GetFont()
@@ -91,16 +90,16 @@ function module:OnModuleUpdate()
 ]]
 	-- Clear all points for the percentage display
 	self.HPPerc:ClearAllPoints()
-	if (self.db.profile.Side == 1) then
+	if(self.db.profile.Side == 1) then
 		-- Attach to left side
 		self.HPPerc:SetPoint("TOP", self.f, "BOTTOMLEFT", -20, -130)
 	else
 		-- Attach to right side
 		self.HPPerc:SetPoint("TOP", self.f, "BOTTOMLEFT", 20, -130)
 	end
-	if (UnitExists(self.unit)) then
+	if(UnitExists(self.unit)) then
 		self.f:SetValue(UnitHealth(self.unit))
-		if (UnitIsFriend("player", self.unit)) then
+		if(UnitIsFriend("player", self.unit)) then
 			self:UpdateColor(1)
 		else
 			self:UpdateColor(2)
@@ -118,7 +117,7 @@ function module:OnModuleEnable()
 	else
 		self.f:SetMax(UnitHealthMax(self.unit))
 		self.f:SetValue(UnitHealth(self.unit))
-		self.HPPerc:SetText(floor((UnitHealth(self.unit) / UnitHealthMax(self.unit)) * 100) .. "%")
+		self.HPPerc:SetText(floor((UnitHealth(self.unit) / UnitHealthMax(self.unit)) * 100).."%")
 	end
 
 	-- Register the events we will use
@@ -135,6 +134,7 @@ function module:OnModuleEnable()
 	self.f:Show()
 end
 
+
 function module:PLAYER_TARGET_CHANGED()
 	self.f.alphaState = -1
 	if not UnitExists(self.unit) then
@@ -147,16 +147,16 @@ function module:PLAYER_TARGET_CHANGED()
 		self.tapped = false
 		self.friend = false
 		self.f:SetMax(UnitHealthMax(self.unit))
-		if (UnitIsDead(self.unit)) then
+		if(UnitIsDead(self.unit)) then
 			self.f:GhostMode(false, self.unit)
 			self.f:SetValue(0)
 			self.HPPerc:SetText("Dead")
-		elseif (UnitIsGhost(self.unit)) then
+		elseif(UnitIsGhost(self.unit)) then
 			self.f:GhostMode(true, self.unit)
 		else
 			self.f:GhostMode(false, self.unit)
 			if UnitIsTapDenied(self.unit) then
-				self.f:UpdateColor({ ["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5 })
+				self.f:UpdateColor({["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5})
 				self.tapped = true
 			elseif (UnitIsFriend("player", self.unit)) then
 				self:UpdateColor(1)
@@ -165,44 +165,44 @@ function module:PLAYER_TARGET_CHANGED()
 				self:UpdateColor(2)
 			end
 			self.f:SetValue(UnitHealth(self.unit))
-			self.HPPerc:SetText(floor((UnitHealth(self.unit) / UnitHealthMax(self.unit)) * 100) .. "%")
-
+			self.HPPerc:SetText(floor((UnitHealth(self.unit) / UnitHealthMax(self.unit)) * 100).."%")
+			
 			self:UNIT_HEAL_PREDICTION(nil, self.unit)
 		end
 	end
 end
 
 function module:UpdateHealth(event, arg1)
-	if (arg1 == self.unit) then
-		if (UnitIsDead(self.unit)) then
+	if(arg1 == self.unit) then
+		if(UnitIsDead(self.unit)) then
 			self.f:GhostMode(false, self.unit)
 			self.f:SetValue(0)
 			self.HPPerc:SetText("Dead")
-		elseif (UnitIsGhost(self.unit)) then
+		elseif(UnitIsGhost(self.unit)) then
 			self.f:GhostMode(true, self.unit)
 		else
 			self.f:GhostMode(false, self.unit)
 
 			-- Update ring color based on target status
 			if (not self.tapped and UnitIsTapDenied(self.unit)) then
-				self.f:UpdateColor({ ["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5 })
+				self.f:UpdateColor({["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5})
 				self.tapped = true
-			elseif (not self.friend and UnitIsFriend("player", self.unit)) then
+			elseif(not self.friend and UnitIsFriend("player", self.unit)) then
 				self:UpdateColor(1)
 				self.friend = true
-			elseif (self.friend and not UnitIsFriend("player", self.unit)) then
+			elseif(self.friend and not UnitIsFriend("player", self.unit)) then
 				self:UpdateColor(2)
 				self.friend = false
 			end
 
 			local health, maxHealth = UnitHealth(self.unit), UnitHealthMax(self.unit)
-			self.HPPerc:SetText(floor((health / maxHealth) * 100) .. "%")
+			self.HPPerc:SetText(floor((health / maxHealth) * 100).."%")
 			if (event == "UNIT_MAXHEALTH") then
 				self.f:SetMax(maxHealth)
 			else
 				self.f:SetValue(health)
 			end
-
+			
 			if self.healPrediction > 0 then
 				local ih = self.healPrediction
 				if health + ih >= maxHealth then
