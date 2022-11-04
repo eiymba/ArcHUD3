@@ -21,7 +21,7 @@ module.defaults = {
 	}
 }
 module.options = {
-	{ name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC" },
+	{name = "ShowPerc", text = "SHOWPERC", tooltip = "SHOWPERC"},
 	hasmanabar = true,
 }
 module.localized = true
@@ -36,14 +36,13 @@ function module:Initialize()
 	self.f:SetReversed(true)
 	self.f:SetAlpha(0)
 
-	self.MPPerc = self:CreateFontString(self.f, "BACKGROUND", { 100, 17 }, 16, "LEFT", { 1.0, 1.0, 1.0 },
-		{ "BOTTOMLEFT", self.f, "BOTTOMLEFT", 65, -125 })
-
+	self.MPPerc = self:CreateFontString(self.f, "BACKGROUND", {100, 17}, 16, "LEFT", {1.0, 1.0, 1.0}, {"BOTTOMLEFT", self.f, "BOTTOMLEFT", 65, -125})
+	
 	self:CreateStandardModuleOptions(36)
 end
 
 function module:OnModuleUpdate()
-	if (self.db.profile.ShowPerc) then
+	if(self.db.profile.ShowPerc) then
 		self.MPPerc:Show()
 	else
 		self.MPPerc:Hide()
@@ -57,7 +56,7 @@ function module:OnModuleUpdate()
 		self.MPPerc:SetHeight(12)
 
 		self.MPPerc:ClearAllPoints()
-		if (self.db.profile.Side == 1) then
+		if(self.db.profile.Side == 1) then
 			-- Attach to left side
 			self.MPPerc:SetPoint("TOPLEFT", self.f, "BOTTOMLEFT", -100, -115)
 		else
@@ -67,7 +66,7 @@ function module:OnModuleUpdate()
 	else
 		fontName, _, fontFlags = self.MPPerc:GetFont()
 		self.MPPerc:SetFont(fontName, 16, fontFlags)
-
+		
 		self.MPPerc:SetWidth(100)
 		self.MPPerc:SetHeight(17)
 
@@ -84,8 +83,8 @@ function module:OnModuleEnable()
 	self.f:SetMax(10)
 	self.f:SetValue(10)
 
-	if (UnitExists(self.unit) and UnitPowerMax(self.unit) > 0) then
-		self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100) .. "%")
+	if(UnitExists(self.unit) and UnitPowerMax(self.unit) > 0) then
+		self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100).."%")
 		self.f:SetMax(UnitPowerMax(self.unit))
 		self.f:SetValue(UnitPower(self.unit))
 	else
@@ -94,11 +93,11 @@ function module:OnModuleEnable()
 	end
 
 	-- Register the events we will use
-	self:RegisterEvent("PET_UI_UPDATE", "UpdatePet")
-	self:RegisterEvent("PET_BAR_UPDATE", "UpdatePet")
-	self:RegisterUnitEvent("UNIT_PET", "UpdatePet", "player")
-	self:RegisterUnitEvent("UNIT_POWER_UPDATE", "UpdatePower")
-	self:RegisterUnitEvent("UNIT_MAXPOWER", "UpdatePower")
+	self:RegisterEvent("PET_UI_UPDATE",		"UpdatePet")
+	self:RegisterEvent("PET_BAR_UPDATE",	"UpdatePet")
+	self:RegisterUnitEvent("UNIT_PET",		"UpdatePet", "player")
+	self:RegisterUnitEvent("UNIT_POWER_UPDATE",	"UpdatePower")
+	self:RegisterUnitEvent("UNIT_MAXPOWER",	"UpdatePower")
 	self:RegisterUnitEvent("UNIT_DISPLAYPOWER")
 
 	-- Activate ring timers
@@ -113,13 +112,13 @@ function module:UNIT_DISPLAYPOWER()
 end
 
 function module:UpdatePet(event, arg1)
-	if (event == "UNIT_PET" and arg1 ~= "player") then return end
-	if (UnitExists(self.unit)) then
+	if(event == "UNIT_PET" and arg1 ~= "player") then return end
+	if(UnitExists(self.unit)) then
 		self:UpdateColor(UnitPowerType(self.unit))
 		self.f:SetMax(UnitPowerMax(self.unit))
 		self.f:SetValue(UnitPower(self.unit))
 		if (UnitPowerMax(self.unit) > 0) then
-			self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100) .. "%")
+			self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100).."%")
 			self.f:Show()
 		else
 			self.MPPerc:SetText("")
@@ -132,17 +131,18 @@ function module:UpdatePet(event, arg1)
 end
 
 function module:UpdatePower(event, arg1)
-	if (arg1 == self.unit) then
+	if(arg1 == self.unit) then
 		if (event == "UNIT_MAXPOWER") then
 			self:UpdateColor(UnitPowerType(self.unit))
 			self.f:SetMax(UnitPowerMax(self.unit))
 		else
 			self.f:SetValue(UnitPower(self.unit))
 			if (UnitPowerMax(self.unit) > 0) then
-				self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100) .. "%")
+				self.MPPerc:SetText(floor((UnitPower(self.unit) / UnitPowerMax(self.unit)) * 100).."%")
 			else
 				self.MPPerc:SetText("")
 			end
 		end
 	end
 end
+

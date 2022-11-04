@@ -1,3 +1,4 @@
+
 ArcHUD.templatePowerRing = {}
 local module = ArcHUD.templatePowerRing
 
@@ -14,14 +15,14 @@ module.defaults = {
 		Side = 2,
 		Level = 1,
 		ShowSeparators = true,
-		Color = { r = 1, g = 1, b = 0 },
+		Color = {r = 1, g = 1, b = 0},
 		RingVisibility = 2, -- always fade out when out of combat, regardless of ring status
 		ShowTextHuge = false
 	}
 }
 module.options = {
-	{ name = "Flash", text = "FLASH", tooltip = "FLASH" },
-	{ name = "ShowTextHuge", text = "SHOWTEXTHUGE", tooltip = "SHOWTEXTHUGE" }, -- fka "combo points"
+	{name = "Flash", text = "FLASH", tooltip = "FLASH"},
+	{name = "ShowTextHuge", text = "SHOWTEXTHUGE", tooltip = "SHOWTEXTHUGE"}, -- fka "combo points"
 	attach = true,
 	hasseparators = true,
 }
@@ -39,11 +40,11 @@ function module:InitializePowerRing()
 	self.f:SetAlpha(0)
 	self.f:Hide()
 
-	self.TextHuge = self:CreateFontString(self.f, "BACKGROUND", { 40, 30 }, 30, "CENTER",
-		{ self.defaults.profile.Color.r, self.defaults.profile.Color.g, self.defaults.profile.Color.b },
-		{ "BOTTOM", ArcHUDFrame, "BOTTOM" })
+	self.TextHuge = self:CreateFontString(self.f, "BACKGROUND", {40, 30}, 30, "CENTER", 
+						{ self.defaults.profile.Color.r, self.defaults.profile.Color.g, self.defaults.profile.Color.b },
+						{ "BOTTOM", ArcHUDFrame, "BOTTOM" })
 	self.TextHuge:Hide()
-
+	
 	self:CreateStandardModuleOptions(55)
 
 	self.active = false
@@ -95,7 +96,7 @@ function module:UpdatePowerRing()
 			self.TextHuge:SetText("")
 		end
 	end
-
+	
 	if self.db.profile.Flash then
 		local flashAt = self.flashAt or maxPower
 		if (num >= flashAt) then
@@ -126,7 +127,7 @@ function module:UpdateActive(event, arg1)
 		isActive = true
 	else
 		local spec = GetSpecialization()
-		for i, s in ipairs(self.specs) do
+		for i,s in ipairs(self.specs) do
 			if s == spec then
 				isActive = true
 				break
@@ -163,7 +164,7 @@ function module:UpdateActive(event, arg1)
 		end
 		self.active = isActive
 	end
-
+	
 	self.f:SetShown(isActive and ((not self.CheckVisible) or self:CheckVisible()))
 end
 
@@ -171,7 +172,7 @@ end
 -- Can be overridden in case more events must be registered (e.g., for detecting shapeshifts)
 --
 function module:OnActiveChanged(oldState, newState)
-
+	
 end
 
 --
